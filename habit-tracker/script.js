@@ -4,23 +4,59 @@ const habitsList = document.getElementById('habits-list')
 const habitNameInput = document.getElementById('habit-name')
 const addHabitForm = document.getElementById('add-habit-form')
 const errorMsg = document.getElementById('error-message')
+const STORAGE_KEY = "habit-tracker-state";
 
-const state = {
-    habits: [
-      { id: "h1", name: "Gym", completedDates: [] },
-      { id: "h2", name: "Cook", completedDates: ["2026-01-14"] },
-    ],
-};
+const state = { habits: [] };
+
+const saveState = () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+}
+
+const loadState = () => {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+
+    try {
+        return JSON.parse(raw);
+    } catch {
+        return null;
+    }
+}
+
+const getDateString = (dateObj) => dateObj.toISOString().slice(0, 10)
+
+const getYesterday = (dateStr) => {
+    const d =  new Date(dateStr);     
+    d.setDate(d.getDate() - 1);               // go back 1 day
+    return getDateString(d);
+}
+
+const getStreak = (completedDates) => {
+    let current = getDateString(new Date())
+    let streak = 0
+    let completedDatesSet = new Set(completedDates)
+    if (completedDatesSet.has(current)) {
+        streak += 1
+        let prev = getYesterday(current)
+        while (completedDatesSet.has(prev)) {
+            prev = getYesterday(prev)
+            streak += 1
+        }
+    }
+    return streak
+}
 
 const render = () => {
     let html = "";
+    const today = getDateString(new Date())
     for (const habit of state.habits) {
+        const streak = getStreak(habit.completedDates);
         html += `
         <div class='habit-card' data-id="${habit.id}"> 
             <h2 class='habit-name'></h2>
-            <p class='text-streak'>Streak: 0</p>
+            <p class='text-streak'>Streak: ${streak}</p>
             <div class="habit-actions">
-                <button class="done-today-btn" type="button" data-id="${habit.id}">Mark Done</button>
+                <button class="done-today-btn" type="button" data-id="${habit.id}">${habit.completedDates.includes(today) ? 'Completed' : 'Mark Done'}</button>
                 <button class="delete-habit-btn" type="button" data-id="${habit.id}">Delete</button>
             </div>
         </div>
@@ -36,11 +72,10 @@ const render = () => {
     console.log(state)
 }
 
-render()
-
 const generateId = (habitName) => {
     return Date.now().toString(36) + Math.random().toString(36).slice(2)
 }
+
 addHabitForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = habitNameInput.value.trim();
@@ -55,31 +90,11 @@ addHabitForm.addEventListener('submit', (e) => {
         completedDates: []
     }
     state.habits.push(habit)
+    saveState()
     habitNameInput.value = ''
     habitNameInput.focus()
     render()
 });
-
-const getYesterday = (dateStr) => {
-    const today = dateStr
-    return getDateString(new Date(today) - 24 * 60 * 60 * 60)
-}
-
-const getStreak = (completedDates) => {
-    let current = getDateString(new Date())
-    let streak = 0
-    let completedDatesSet = new Set(completedDates)
-    if (completedDatesSet.has(today)) {
-        streak += 1
-        while (completedDatesSet.has(getYesterday(current))) {
-            current = getYesterday(current)
-            streak += 1
-        }
-    }
-    return streak
-}
-
-const getDateString = (dateObj) => dateObj.toISOString().slice(0, 10)
 
 habitsList.addEventListener('click', (e)=> {
     const btn = e.target.closest('button');
@@ -98,12 +113,11 @@ habitsList.addEventListener('click', (e)=> {
         if (habit.completedDates.includes(date)) {
             let index = habit.completedDates.indexOf(date)
             habit.completedDates.splice(index, 1)
-            btn.innerText = 'Mark Done'
         } else {
             habit.completedDates.push(date)
-            btn.innerText = 'Done'
         }
-        console.log("DONE clicked for:", habitId);
+        saveState()
+        render()
         return;
       }
     
@@ -113,8 +127,14 @@ habitsList.addEventListener('click', (e)=> {
         const index = state.habits.findIndex((h) => h.id === habitId)
         if (index === -1) return;
         state.habits.splice(index, 1)
-        console.log("DELETE clicked for:", habitId);
+        saveState()
         render()
         return;
       }
 })
+
+const loaded = loadState();
+if (loaded) {
+  state.habits = loaded.habits ?? [];
+}
+render();
