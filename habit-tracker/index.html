@@ -19,7 +19,14 @@
                 <input type="text" id="habit-name" placeholder="Enter habit name">
                 <button type="submit" id="add-habit-btn">Add Habit</button>
             </form>
-            <p id="error-message"></p>
+            <p id="error-message" role="alert"></p>
+        </div>
+        <div id="controls">
+            <div id="filters" role="group" aria-label="Filter habits" >
+                <button type="button" class="filter-btn is-active" data-filter="all">All</button>
+                <button type="button" class="filter-btn" data-filter="done">Done Today</button>
+                <button type="button" class="filter-btn" data-filter="notDone">Not Done</button>
+            </div>
         </div>
         <div id="habits-list">
         </div>
