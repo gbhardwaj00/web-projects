@@ -32,6 +32,7 @@ header, main {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 16px;
+  margin-bottom: 16px;
 }
 
 #add-habit-form {
@@ -66,6 +67,7 @@ button:hover { filter: brightness(1.08); }
 #habits-list {
   margin-top: 16px;
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 12px;
 }
 
