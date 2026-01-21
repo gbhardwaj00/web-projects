@@ -1,6 +1,7 @@
 import './App.css';
-import Header from './components/Header';
+import Header from './components/Header.jsx';
 import useLocalStorage from './hooks/useLocalStorage';
+import AddHabitForm from './components/AddHabitForm.jsx';
 
 function App() {
   const [habits, setHabits] = useLocalStorage('habits-list', []);
@@ -15,11 +16,30 @@ function App() {
     doneHabits: habits.filter(habit => isDoneToday(habit)).length,
   }
 
+  const createId = () => {
+    return crypto.randomUUID();
+  }
+
+  const addHabit = (habitName) => {
+    // Return false if duplicate exists
+    if (habits.some(h => h.name.trim().toLowerCase() === habitName.toLowerCase())) {
+      return false;
+    }
+
+    const newHabit = {
+      id: createId(habitName),
+      name: habitName,
+      completedDates: [],
+    }
+    setHabits([...habits, newHabit]);
+    return true; // Return true if successful
+  }
+
   return (
     <>
       <Header stats={stats} />
       <main>
-        {/* <AddHabitForm onAdd={addHabit} /> */}
+        <AddHabitForm onAddHabit={addHabit} />
         {/* <Filters currentFilter={filter} onFilterChange={setFilter} /> */}
 
         {/* <HabitList 
