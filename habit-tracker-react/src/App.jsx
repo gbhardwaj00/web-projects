@@ -1,14 +1,24 @@
 import './App.css';
+import Header from './components/Header';
+import useLocalStorage from './hooks/useLocalStorage';
 
 function App() {
+  const [habits, setHabits] = useLocalStorage('habits-list', []);
+
+  const isDoneToday = (habit) => {
+    const today = new Date().toISOString().split('T')[0];
+    return habit.completedDates?.includes(today);
+  }
+
+  const stats = {
+    totalHabits: habits.length,
+    doneHabits: habits.filter(habit => isDoneToday(habit)).length,
+  }
 
   return (
     <>
-      {/* <Header stats={stats} /> */}
+      <Header stats={stats} />
       <main>
-        <h1>Habit Tracker (Work in Progress)</h1>
-        <p>Start building your components in <code>src/components/</code>!</p>
-
         {/* <AddHabitForm onAdd={addHabit} /> */}
         {/* <Filters currentFilter={filter} onFilterChange={setFilter} /> */}
 
